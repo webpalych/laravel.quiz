@@ -11,12 +11,7 @@
 |
 */
 
-Route::auth();
 
-
-Route::get('/test', [
-    'uses' => 'TestController@index'
-]);
 
 Route::group(['prefix'=>'admin'], function(){
     Route::resource('questions', 'Admin\QuestionController', ['except' => [
