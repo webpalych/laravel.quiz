@@ -1,3 +1,5 @@
-/**
- * Created by Palych on 03.05.2017.
- */
+var io =require('socket.io')(6560);
+
+io.on('connection', function(socket) {
+    console.log('hello');
+})

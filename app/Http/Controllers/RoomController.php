@@ -8,10 +8,23 @@ use App\Http\Requests;
 use App\Models\Room;
 use App\User;
 use Illuminate\Support\Facades\Input;
+use Auth;
+
 
 
 class RoomController extends Controller
 {
+
+    public function __construct()
+    {
+        // Apply the jwt.auth middleware to all methods in this controller
+        // except for the authenticate method. We don't want to prevent
+        // the user from retrieving their token if they don't already have it
+        $this->middleware('jwt.auth', ['except' => ['authenticate']]);
+
+    }
+
+
     public function create() {
 
         $room = Room::create();
@@ -25,7 +38,7 @@ class RoomController extends Controller
 
     public function join($id) {
 
-        $user = User::find(Input::get('user_id'));
+        $user = Auth::user();
 
         $room = Room::find($id);
 
@@ -35,7 +48,7 @@ class RoomController extends Controller
 
         }
 
-        $user->rooms()->attach($id);
+        $room->users()->attach($user->id);
 
         $data = [
             'message' => 'joined room - ' . $id,
@@ -47,7 +60,7 @@ class RoomController extends Controller
 
     public function leave($id) {
 
-        $user = User::find(Input::get('user_id'));
+        $user = Auth::user();
 
         $room = Room::find($id);
 
@@ -57,19 +70,27 @@ class RoomController extends Controller
 
         }
 
-        $user->rooms()->detach($id);
+        $room->users()->detach($user->id);
 
         $data = [
             'message' => 'leaved room - ' . $id,
         ];
 
+        if(empty($room->users->all())) {
+
+            return $this->callAction('close', ['params' => [
+                'roomId' => $room->id,
+            ]]);
+
+        }
+
         return response()->json($data);
 
     }
 
-    public function  close($id) {
+    public function  close($data) {
 
-        $room = Room::find($id);
+        $room = Room::find($data['roomId']);
 
         if (!$room) {
             return response()->json('',404);
@@ -79,7 +100,7 @@ class RoomController extends Controller
         if ($room->delete()) {
 
             $data = [
-                'message' => 'room closed - ' . $id,
+                'message' => 'room closed - ' . $data['roomId'],
             ];
 
             return response()->json($data);

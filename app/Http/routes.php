@@ -13,11 +13,26 @@
 
 
 
+Route::get('/', function() {
+   return view('index');
+});
+
 Route::group(['prefix'=>'admin'], function(){
     Route::resource('questions', 'Admin\QuestionController', ['except' => [
         'create', 'edit'
     ]]);
     Route::post('auth', 'Admin\AuthenticateController@authenticate');
 });
+
+
+Route::group(['prefix'=>'room'], function(){
+    Route::get('create', 'RoomController@create');
+    Route::get('join/{id}', 'RoomController@join');
+    Route::get('leave/{id}', 'RoomController@leave');
+});
+
+
+
+Route::post('auth', 'Admin\AuthenticateController@registrationUser');
 
 
