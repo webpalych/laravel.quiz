@@ -32,6 +32,8 @@ Route::group(['prefix'=>'room'], function(){
 });
 
 
+Route::get('/quiz/get_question/{roomID}', 'QuizController@getQuestion');
+
 
 Route::post('auth', 'Admin\AuthenticateController@registrationUser');
 

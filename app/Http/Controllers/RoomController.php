@@ -9,6 +9,9 @@ use App\Models\Room;
 use App\User;
 use Illuminate\Support\Facades\Input;
 use Auth;
+use Event;
+use App\Events\JoinRoom;
+use Illuminate\Support\Facades\Redis;
 
 
 
@@ -30,7 +33,8 @@ class RoomController extends Controller
         $room = Room::create();
 
         $data = [
-          'message' => 'room created - ' . $room->id,
+            'message' => 'success',
+            'roomID' => $room->id
         ];
 
         return response()->json($data);
@@ -44,15 +48,21 @@ class RoomController extends Controller
 
         if(!$room) {
 
-            return response()->json('',404);
+            $data = [
+                'message' => 'error',
+            ];
+
+            return response()->json($data,404);
 
         }
 
         $room->users()->attach($user->id);
 
         $data = [
-            'message' => 'joined room - ' . $id,
+            'message' => 'success',
         ];
+
+        Event::fire(new JoinRoom($room,$user));
 
         return response()->json($data);
 
@@ -66,14 +76,18 @@ class RoomController extends Controller
 
         if(!$room) {
 
-            return response()->json('',404);
+            $data = [
+                'message' => 'error',
+            ];
+
+            return response()->json($data,404);
 
         }
 
         $room->users()->detach($user->id);
 
         $data = [
-            'message' => 'leaved room - ' . $id,
+            'message' => 'success',
         ];
 
         if(empty($room->users->all())) {
@@ -93,14 +107,22 @@ class RoomController extends Controller
         $room = Room::find($data['roomId']);
 
         if (!$room) {
-            return response()->json('',404);
+
+            $data = [
+                'message' => 'error',
+            ];
+
+            return response()->json($data,404);
+
         }
 
 
         if ($room->delete()) {
 
+            Redis::del('room:' . $data['roomId']);
+
             $data = [
-                'message' => 'room closed - ' . $data['roomId'],
+                'message' => 'success',
             ];
 
             return response()->json($data);
