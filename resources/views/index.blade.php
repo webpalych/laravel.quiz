@@ -25,6 +25,8 @@
 <button id="getQuestion">Get Question</button>
 
 
+<button id="sendResult">Send Result</button>
+
 <input id="roomIdLeave" type="text">
 <button id="leaveRoom">Leave Room</button>
 
@@ -63,6 +65,10 @@
             console.log(data);
         });
 
+        socket.on('GetResult',function (data) {
+            console.log(data);
+        });
+
 
         $('#createRoom').on('click', function(){
             $.ajax({
@@ -96,6 +102,24 @@
 
             socket.emit('getQuestion',data)
         });
+
+
+        $('#sendResult').on('click', function(){
+            var id = $('#roomIdQuestion').val();
+            var token = $('#userToken').val();
+
+            var data = {
+                'room' : 5,
+                'user' : token,
+                'step' : 1,
+                'question' : 1,
+                'answer' : 2,
+                'time' : 10
+            };
+
+            socket.emit('sendResult',data)
+        });
+
 
 
         $('#leaveRoom').on('click', function(){

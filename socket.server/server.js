@@ -25,7 +25,9 @@ io.on('connection', function(socket) {
             auth: {
                 'bearer': data.user
             }
+
         }, function (error, response, json) {
+
             if (json.message == 'success') {
 
                 var room = 'room-' + data.room;
@@ -53,6 +55,25 @@ io.on('connection', function(socket) {
         }, function (error, response, json) {})
 
     });
+
+    socket.on('sendResult', function (data) {
+        request.post({
+            url: 'http://quiz.loc/quiz/check_results',
+            json: true,
+            auth: {
+                'bearer': data.user
+            },
+            form: {
+                'room' : data.room,
+                'step' : data.step,
+                'question' : data.question,
+                'answer' : data.answer,
+                'time' : data.time
+            }
+        }, function (error, response, json) {})
+
+    });
+
 
 });
 

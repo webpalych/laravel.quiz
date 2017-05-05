@@ -2,16 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\CheckResult;
+use Auth;
+use Event;
+use Illuminate\Support\Facades\Redis;
+
 use App\Events\SendQuestion;
-use Illuminate\Http\Request;
 
 use App\Http\Requests;
+use Illuminate\Http\Request;
+
 use App\Models\Question;
 use App\Models\Answer;
+use App\Models\IntermediateResult;
 use App\User;
-use Auth;
-use Illuminate\Support\Facades\Redis;
-use Event;
+
+
+
 
 class QuizController extends Controller
 {
@@ -35,6 +42,45 @@ class QuizController extends Controller
 
         Event::fire(new SendQuestion($room_id,$question));
 
-        return ;
+        return response()->json();
+
     }
+
+    public function checkResult (Request $request)
+    {
+        $data = $request->all();
+        $points = 0;
+        $user = Auth::user();
+
+
+        $question = Question::with(['answers' => function($query){
+            $query->where('is_right','1')->take(1);
+        }])->find($data['question']);
+
+        $right_answer = $question->answers[0];
+
+        if( $data['answer'] == $right_answer->id ) {
+            $points = 1;
+            // умножение очков на время $data['time']
+        }
+
+        $intResult = new IntermediateResult([
+            'points' => $points,
+            'step' => $data['step']
+        ]);
+
+        $intResult->user()->associate($user);
+
+        $intResult->room()->associate($data['room']);
+
+       if($intResult->save()){
+           Event::fire(new CheckResult($data['room'], $user, $intResult));
+       }
+
+        return response()->json('success');
+
+    }
+
+
+
 }

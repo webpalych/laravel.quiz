@@ -111,10 +111,7 @@ class QuestionController extends Controller
      */
     public function show($id)
     {
-        $question = Question::select()
-            ->where('id',$id)
-            ->with('answers')
-            ->first();
+        $question = Question::with('answers')->find($id);
 
         if ($question)
         {

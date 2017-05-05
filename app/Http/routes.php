@@ -32,7 +32,13 @@ Route::group(['prefix'=>'room'], function(){
 });
 
 
-Route::get('/quiz/get_question/{roomID}', 'QuizController@getQuestion');
+Route::group(['prefix'=>'quiz'], function(){
+    Route::get('get_question/{roomID}', 'QuizController@getQuestion');
+    Route::post('check_results', 'QuizController@checkResult');
+});
+
+
+
 
 
 Route::post('auth', 'Admin\AuthenticateController@registrationUser');
