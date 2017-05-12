@@ -12,7 +12,7 @@ redis.on('pmessage', function(subscribed, channel, message) {
     message = JSON.parse(message);
     var room = 'room-' + message.data.room;
     io.sockets.in(room).emit(message.event, message.data.data);
-    //console.log(message);
+    console.log(message);
 });
 
 io.on('connection', function(socket) {
@@ -45,9 +45,9 @@ io.on('connection', function(socket) {
 
     });
 
-    socket.on('getQuestion', function (data) {
+    socket.on('startQuiz', function (data) {
         request.get({
-            url: 'http://quiz.loc/quiz/get_question/' + data.room,
+            url: 'http://quiz.loc/quiz/start_quiz/' + data.room,
             json: true,
             auth: {
                 'bearer': data.user
@@ -73,7 +73,6 @@ io.on('connection', function(socket) {
         }, function (error, response, json) {})
 
     });
-
 
 });
 

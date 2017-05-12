@@ -10,7 +10,7 @@ use App\User;
 use Illuminate\Support\Facades\Input;
 use Auth;
 use Event;
-use App\Events\JoinRoom;
+use App\Events\RoomChanges;
 use Illuminate\Support\Facades\Redis;
 
 
@@ -28,9 +28,39 @@ class RoomController extends Controller
     }
 
 
+    public function getAllRoomPlayers($room_id)
+    {
+
+        $room = Room::with('users')->find($room_id);
+
+        if (!$room)
+        {
+            return response()->json(null,404);
+        }
+
+        $users = [];
+
+        foreach ($room->users as $user)
+        {
+            $users[]['name'] = $user->name;
+        }
+
+        $data = [
+
+            'roomID' => $room->id,
+            'users' => $users
+
+        ];
+
+        return response()->json($data);
+
+    }
+
     public function create() {
 
+        $user = Auth::user();
         $room = Room::create();
+        $room->admin()->associate($user);
 
         $data = [
             'message' => 'success',
@@ -56,13 +86,13 @@ class RoomController extends Controller
 
         }
 
-        $room->users()->attach($user->id);
+        $room->users()->sync([$user->id], false);
 
         $data = [
             'message' => 'success',
         ];
 
-        Event::fire(new JoinRoom($room,$user));
+        Event::fire(new RoomChanges($room, $user));
 
         return response()->json($data);
 
@@ -98,13 +128,15 @@ class RoomController extends Controller
 
         }
 
+        Event::fire(new RoomChanges($room, $user, 'left'));
+
         return response()->json($data);
 
     }
 
-    public function  close($data) {
+    public function close($data) {
 
-        $room = Room::find($data['roomId']);
+        $room = Room::find($data['roomID']);
 
         if (!$room) {
 

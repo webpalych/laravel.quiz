@@ -29,6 +29,9 @@
 
 <input id="roomIdLeave" type="text">
 <button id="leaveRoom">Leave Room</button>
+<br>
+<input id="roomIdStart" type="text">
+<button id="startQuiz">Start Quiz</button>
 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>
@@ -57,15 +60,15 @@
             console.warn(data);
         });
 
-        socket.on('UserJoinedRoom',function (data) {
+        socket.on('RoomChanges',function (data) {
             console.log(data);
         });
 
-        socket.on('GetQuestion',function (data) {
+        socket.on('SendQuestion',function (data) {
             console.log(data);
         });
 
-        socket.on('GetResult',function (data) {
+        socket.on('SendIntermediateResults',function (data) {
             console.log(data);
         });
 
@@ -101,6 +104,19 @@
             };
 
             socket.emit('getQuestion',data)
+        });
+
+
+        $('#startQuiz').on('click', function(){
+            var id = $('#roomIdStart').val();
+            var token = $('#userToken').val();
+
+            var data = {
+                'room' : id,
+                'user' : token
+            };
+
+            socket.emit('startQuiz',data)
         });
 
 

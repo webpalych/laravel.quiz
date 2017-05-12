@@ -8,22 +8,20 @@ use App\Models\Room;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
-class JoinRoom extends Event implements ShouldBroadcast
+class RoomChanges extends Event implements ShouldBroadcast
 {
     use SerializesModels;
 
     public $room;
     public $user;
+    public $type;
 
-    /**
-     * Create a new event instance.
-     *
-     * @return void
-     */
-    public function __construct(Room $room, User $user)
+
+    public function __construct(Room $room, User $user, $type = 'joined')
     {
         $this->room = $room;
         $this->user = $user;
+        $this->type = $type;
     }
 
     /**
@@ -38,7 +36,7 @@ class JoinRoom extends Event implements ShouldBroadcast
 
     public function broadcastAs()
     {
-        return 'UserJoinedRoom';
+        return 'RoomChanges';
     }
 
 
@@ -47,7 +45,8 @@ class JoinRoom extends Event implements ShouldBroadcast
         return [
             'room' => $this->room->id,
             'data' => [
-                'user' => $this->user
+                'user' => $this->user,
+                'type' => $this->type,
             ]
         ];
     }

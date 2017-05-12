@@ -25,4 +25,10 @@ class IntermediateResult extends Model
     {
         return $this->belongsTo('App\Models\Room');
     }
+
+    public static function getRoomResults($roomID, $step)
+    {
+        return self::where('room_id',$roomID)->where('step',$step)->with('user')->get();
+    }
+
 }

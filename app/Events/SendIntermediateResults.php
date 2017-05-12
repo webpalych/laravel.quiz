@@ -8,24 +8,22 @@ use App\User;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
-class CheckResult extends Event implements ShouldBroadcast
+class SendIntermediateResults extends Event implements ShouldBroadcast
 {
     use SerializesModels;
 
     public $roomID;
-    public $user;
-    public $result;
+    public $results;
 
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct( $roomID, User $user, IntermediateResult $result )
+    public function __construct( $roomID, $results )
     {
         $this->roomID = $roomID;
-        $this->user = $user;
-        $this->result = $result;
+        $this->results = $results;
     }
 
     /**
@@ -41,7 +39,7 @@ class CheckResult extends Event implements ShouldBroadcast
 
     public function broadcastAs()
     {
-        return 'GetResult';
+        return 'SendIntermediateResults';
     }
 
     public function broadcastWith()
@@ -49,8 +47,7 @@ class CheckResult extends Event implements ShouldBroadcast
         return [
             'room' => $this->roomID,
             'data' => [
-                'user' => $this->user->name,
-                'result' => $this->result
+                'results' => $this->results
             ]
         ];
     }

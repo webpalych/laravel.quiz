@@ -12,14 +12,15 @@ class CreateRoomUserTable extends Migration
      */
     public function up()
     {
-        Schema::create('player_room', function (Blueprint $table) {
-            $table->increments('id');
+        Schema::create('room_user', function (Blueprint $table) {
 
             $table->integer('user_id')->unsigned()->default(1);
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('cascade');
 
             $table->integer('room_id')->unsigned()->default(1);
             $table->foreign('room_id')->references('id')->on('rooms')->onDelete('cascade')->onUpdate('cascade');
+
+            $table->primary(['user_id', 'room_id']);
         });
     }
 
@@ -30,6 +31,6 @@ class CreateRoomUserTable extends Migration
      */
     public function down()
     {
-        Schema::drop('player_room');
+        Schema::drop('room_user');
     }
 }

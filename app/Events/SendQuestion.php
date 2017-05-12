@@ -36,7 +36,7 @@ class SendQuestion extends Event implements ShouldBroadcast
 
     public function broadcastAs()
     {
-        return 'GetQuestion';
+        return 'SendQuestion';
     }
 
 

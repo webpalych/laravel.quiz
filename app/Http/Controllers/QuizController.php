@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\CheckResult;
+use App\Events\SendIntermediateResults;
+use App\Events\RoomChanges;
 use Auth;
 use Event;
 use Illuminate\Support\Facades\Redis;
@@ -14,9 +15,9 @@ use Illuminate\Http\Request;
 
 use App\Models\Question;
 use App\Models\Answer;
+use App\Models\Room;
 use App\Models\IntermediateResult;
-use App\User;
-
+use App\Models\FinalResult;
 
 
 
@@ -33,16 +34,75 @@ class QuizController extends Controller
 
     }
 
-    public function getQuestion($room_id)
+
+
+    public function initQuiz($roomID) {
+
+
+        $room = Room::with('admin')->with('users')->find($roomID);
+        $user = Auth::user();
+
+        if ($user->id != $room->admin->id)
+        {
+            return response()->json('Unauthorized', 401);
+        }
+
+        $step = 1;
+        while ($step <= 5)
+        {
+            $points = 0;
+
+            if ( $step > 1 ) {
+                $prevPoints = IntermediateResult::select('points')->where('step', $step - 1 )->where('user_id', $user->id)->first();
+                $points = $prevPoints->points;
+            }
+
+            foreach ($room->users as $user)
+            {
+                $user->intResults()->create([
+                    'step' => $step,
+                    'points' => $points,
+                    'room_id' => $room->id
+                ]);
+            }
+
+            $this->callAction('sendQuestion', ['params' => ['roomID' => $room->id,]]);
+
+            sleep(16);
+
+            $intermidiateResults = IntermediateResult::getRoomResults($room->id,$step);
+
+            if ($step == 5 ) {
+                foreach ($intermidiateResults as $result) {
+                    FinalResult::saveResults($result);
+                }
+            }
+
+            Event::fire(new SendIntermediateResults($room->id, $intermidiateResults));
+
+            sleep(10);
+
+            $step++;
+        }
+
+        return response()->json($room);
+
+    }
+
+
+
+    public function sendQuestion($data)
     {
 
-        $questions_numbs = Redis::lrange('room:' . $room_id, 0, 100);
+        $roomID = $data['roomID'];
+
+        $questions_numbs = Redis::lrange('room:' . $roomID, 0, 100);
         $question = Question::with('answers')->whereNotIn('id', $questions_numbs)->inRandomOrder()->first();
-        Redis::rpush('room:' . $room_id, $question->id);
+        Redis::rpush('room:' . $roomID, $question->id);
 
-        Event::fire(new SendQuestion($room_id,$question));
+        Event::fire(new SendQuestion($roomID,$question));
 
-        return response()->json();
+        return ;
 
     }
 
@@ -50,6 +110,7 @@ class QuizController extends Controller
     {
         $data = $request->all();
         $points = 0;
+        $step = $data['step'];
         $user = Auth::user();
 
 
@@ -60,24 +121,17 @@ class QuizController extends Controller
         $right_answer = $question->answers[0];
 
         if( $data['answer'] == $right_answer->id ) {
-            $points = 1;
-            // умножение очков на время $data['time']
+            $points = 15000 / $data['time'];
         }
 
-        $intResult = new IntermediateResult([
-            'points' => $points,
-            'step' => $data['step']
-        ]);
+        $intResult = IntermediateResult::where('user_id', $user->id)->where('room_id', $data['room'])->where('step',$step)->first();
+        $intResult->points = $intResult->points + $points;
 
-        $intResult->user()->associate($user);
+        if($intResult->save()){
+            return response()->json('success');
+        }
 
-        $intResult->room()->associate($data['room']);
-
-       if($intResult->save()){
-           Event::fire(new CheckResult($data['room'], $user, $intResult));
-       }
-
-        return response()->json('success');
+        return response()->json(null, 500);
 
     }
 
