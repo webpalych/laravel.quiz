@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Seeder;
 use App\User;
+use App\Models\Role;
 
 class UserSeed extends Seeder
 {
@@ -14,9 +15,24 @@ class UserSeed extends Seeder
     {
 
         DB::table('users')->delete();
+        DB::table('roles')->delete();
 
-        User::create(['name' => 'admin', 'password' => Hash::make('secret')]);
+        Role::create(['name' => 'admin']);
+        Role::create(['name' => 'player']);
 
+        $user = User::create([
+            'name' => 'admin',
+            'email' => 'admin@mail.com',
+            'password' => Hash::make('admin@mail.com')
+            ]);
+        $user->roles()->attach(1);
+
+        $user = User::create([
+            'name' => 'alex',
+            'email' => 'test@mail.com',
+            'password' => Hash::make('test@mail.com')
+        ]);
+        $user->roles()->attach(2);
 
     }
 }

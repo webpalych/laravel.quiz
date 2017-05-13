@@ -14,7 +14,6 @@
 
 
 Route::get('/', function() {
-
    return view('index');
 });
 
@@ -25,13 +24,11 @@ Route::group(['prefix'=>'admin'], function(){
     Route::post('auth', 'Admin\AuthenticateController@authenticate');
 });
 
-
 Route::group(['prefix'=>'room'], function(){
     Route::get('create', 'RoomController@create');
     Route::get('join/{id}', 'RoomController@join');
     Route::get('leave/{id}', 'RoomController@leave');
 });
-
 
 Route::group(['prefix'=>'quiz'], function(){
     Route::get('get_question/{roomID}', 'QuizController@getQuestion');
@@ -39,7 +36,6 @@ Route::group(['prefix'=>'quiz'], function(){
     Route::post('check_results', 'QuizController@checkResult');
     Route::get('start_quiz/{roomID}', 'QuizController@initQuiz');
 });
-
 
 Route::post('auth', 'Admin\AuthenticateController@registrationUser');
 

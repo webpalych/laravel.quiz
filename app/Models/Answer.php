@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Answer extends Model
 {
-
     public $timestamps = false;
 
     protected $hidden = ['question_id', 'is_right'];

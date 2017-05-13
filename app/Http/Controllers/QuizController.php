@@ -3,18 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Events\SendIntermediateResults;
-use App\Events\RoomChanges;
+use App\Helpers\SendJsonResponse;
 use Auth;
 use Event;
 use Illuminate\Support\Facades\Redis;
 
 use App\Events\SendQuestion;
 
-use App\Http\Requests;
 use Illuminate\Http\Request;
 
 use App\Models\Question;
-use App\Models\Answer;
 use App\Models\Room;
 use App\Models\IntermediateResult;
 use App\Models\FinalResult;
@@ -36,9 +34,8 @@ class QuizController extends Controller
 
 
 
-    public function initQuiz($roomID) {
-
-
+    public function initQuiz($roomID)
+    {
         $room = Room::with('admin')->with('users')->find($roomID);
         $user = Auth::user();
 
@@ -46,6 +43,8 @@ class QuizController extends Controller
         {
             return response()->json('Unauthorized', 401);
         }
+
+        $room->startQuiz();
 
         $step = 1;
         while ($step <= 5)
@@ -76,6 +75,7 @@ class QuizController extends Controller
                 foreach ($intermidiateResults as $result) {
                     FinalResult::saveResults($result);
                 }
+                $room->close();
             }
 
             Event::fire(new SendIntermediateResults($room->id, $intermidiateResults));
@@ -89,11 +89,8 @@ class QuizController extends Controller
 
     }
 
-
-
     public function sendQuestion($data)
     {
-
         $roomID = $data['roomID'];
 
         $questions_numbs = Redis::lrange('room:' . $roomID, 0, 100);
@@ -102,8 +99,7 @@ class QuizController extends Controller
 
         Event::fire(new SendQuestion($roomID,$question));
 
-        return ;
-
+        return SendJsonResponse::sendWithMessage('success');
     }
 
     public function checkResult (Request $request)
@@ -112,7 +108,6 @@ class QuizController extends Controller
         $points = 0;
         $step = $data['step'];
         $user = Auth::user();
-
 
         $question = Question::with(['answers' => function($query){
             $query->where('is_right','1')->take(1);
@@ -128,13 +123,10 @@ class QuizController extends Controller
         $intResult->points = $intResult->points + $points;
 
         if($intResult->save()){
-            return response()->json('success');
+            return SendJsonResponse::sendWithMessage('success');
         }
 
-        return response()->json(null, 500);
-
+        return SendJsonResponse::sendWithMessage('failure');
     }
-
-
 
 }

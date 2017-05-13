@@ -12,11 +12,10 @@ redis.on('pmessage', function(subscribed, channel, message) {
     message = JSON.parse(message);
     var room = 'room-' + message.data.room;
     io.sockets.in(room).emit(message.event, message.data.data);
-    console.log(message);
+    //console.log(message);
 });
 
 io.on('connection', function(socket) {
-
 
     socket.on('joinRoom', function (data) {
         request.get({

@@ -74,9 +74,11 @@
 
 
         $('#createRoom').on('click', function(){
+            var token = $('#userToken').val();
             $.ajax({
                 url: "/room/create",
                 type: "GET",
+                beforeSend: function(xhr){xhr.setRequestHeader('Authorization', 'Bearer '+token);},
                 success: function (data) {
                     $('#createRoomResponse').append(data.message)
                 }
