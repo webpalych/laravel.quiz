@@ -32,8 +32,7 @@ class Question extends Model
             }
         }
         $this->answers()->saveMany($answersToSave);
+
+        return $this;
     }
-
-
-
 }

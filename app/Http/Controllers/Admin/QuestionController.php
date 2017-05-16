@@ -21,7 +21,6 @@ class QuestionController extends Controller
         $this->middleware('jwt.auth', ['except' => ['authenticate']]);
 
         $this->middleware('App\Http\Middleware\AdminAccess');
-
     }
 
 
@@ -44,7 +43,6 @@ class QuestionController extends Controller
      */
     public function store(SaveQuestionRequest $request)
     {
-
         $data = $request->all();
         $new_question = new Question([
             'question_text' => $data['question_text'],
@@ -126,7 +124,4 @@ class QuestionController extends Controller
 
         return SendJsonResponse::sendWithMessage('success');
     }
-
-
-
 }

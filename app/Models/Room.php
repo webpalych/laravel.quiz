@@ -50,5 +50,4 @@ class Room extends Model
         Redis::del('room:' . $this->id);
         return true;
     }
-
 }

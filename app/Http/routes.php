@@ -11,26 +11,28 @@
 |
 */
 
-
-
-Route::get('/', function() {
+Route::get('/', function()
+{
    return view('index');
 });
 
-Route::group(['prefix'=>'admin'], function(){
+Route::group(['prefix'=>'admin'], function()
+{
     Route::resource('questions', 'Admin\QuestionController', ['except' => [
         'create', 'edit'
     ]]);
     Route::post('auth', 'Admin\AuthenticateController@authenticate');
 });
 
-Route::group(['prefix'=>'room'], function(){
+Route::group(['prefix'=>'room'], function()
+{
     Route::get('create', 'RoomController@create');
     Route::get('join/{id}', 'RoomController@join');
     Route::get('leave/{id}', 'RoomController@leave');
 });
 
-Route::group(['prefix'=>'quiz'], function(){
+Route::group(['prefix'=>'quiz'], function()
+{
     Route::get('get_question/{roomID}', 'QuizController@getQuestion');
     Route::get('get_players/{roomID}', 'RoomController@getAllRoomPlayers');
     Route::post('check_results', 'QuizController@checkResult');

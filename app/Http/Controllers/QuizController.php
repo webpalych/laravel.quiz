@@ -86,7 +86,6 @@ class QuizController extends Controller
         }
 
         return response()->json($room);
-
     }
 
     public function sendQuestion($data)
@@ -128,5 +127,4 @@ class QuizController extends Controller
 
         return SendJsonResponse::sendWithMessage('failure');
     }
-
 }

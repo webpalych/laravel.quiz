@@ -38,8 +38,8 @@ class AuthenticateController extends Controller
 
 
 
-    public function registrationUser (Request $request) {
-
+    public function registrationUser (Request $request)
+    {
         $data = $request->all();
 
         $validator = Validator::make($data, [
@@ -66,7 +66,6 @@ class AuthenticateController extends Controller
             'name' => $user->name,
             'email' => $user->email
         ]]);
-
     }
 
 
@@ -101,7 +100,5 @@ class AuthenticateController extends Controller
         ]);
         $user->roles()->attach(2);
         return $user;
-
     }
-
 }

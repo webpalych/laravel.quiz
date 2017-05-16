@@ -19,5 +19,4 @@ class FinalResult extends Model
             'points' => $result->points,
         ]);
     }
-
 }

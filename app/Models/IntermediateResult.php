@@ -30,5 +30,4 @@ class IntermediateResult extends Model
     {
         return self::where('room_id',$roomID)->where('step',$step)->with('user')->get();
     }
-
 }
