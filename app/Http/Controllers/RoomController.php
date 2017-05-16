@@ -26,7 +26,6 @@ class RoomController extends Controller
 
     public function getAllRoomPlayers($room_id)
     {
-
         $room = Room::with('users')->find($room_id);
 
         if (!$room)
@@ -47,14 +46,14 @@ class RoomController extends Controller
         ];
 
         return response()->json($data);
-
     }
 
-    public function create() {
-
+    public function create()
+    {
         $user = Auth::user();
         $room = Room::create();
         $room->admin()->associate($user);
+        $room->save();
 
         $data = [
             'message' => 'success',
@@ -64,8 +63,8 @@ class RoomController extends Controller
         return response()->json($data);
     }
 
-    public function join($id) {
-
+    public function join($id)
+    {
         $room = Room::find($id);
 
         if(!$room)
@@ -83,11 +82,10 @@ class RoomController extends Controller
         Event::fire(new RoomChanges($room, $user));
 
         return SendJsonResponse::sendWithMessage('success');
-
     }
 
-    public function leave($id) {
-
+    public function leave($id)
+    {
         $user = Auth::user();
 
         $room = Room::find($id);
@@ -109,11 +107,10 @@ class RoomController extends Controller
         Event::fire(new RoomChanges($room, $user, 'left'));
 
         return SendJsonResponse::sendWithMessage('success');
-
     }
 
-    public function close($data) {
-
+    public function close($data)
+    {
         $room = Room::find($data['roomID']);
 
         if (!$room)
@@ -127,7 +124,6 @@ class RoomController extends Controller
         }
 
         return SendJsonResponse::sendWithMessage('failure');
-
     }
 
 }

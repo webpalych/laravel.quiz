@@ -9,6 +9,7 @@ class Room extends Model
 {
     protected $fillable = [
         'is_started',
+        'room_admin'
     ];
 
     protected $hidden = [
