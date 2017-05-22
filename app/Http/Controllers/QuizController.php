@@ -21,7 +21,10 @@ use App\Models\FinalResult;
 
 class QuizController extends Controller
 {
-
+    const QUESTION_TIME = 15;
+    const RESULTS_TIME = 10;
+    const SCORE_COEFFICIENT = 1500;
+    const STEPS_COUNT = 5;
 
     public function __construct()
     {
@@ -31,8 +34,6 @@ class QuizController extends Controller
         $this->middleware('jwt.auth', ['except' => ['authenticate']]);
 
     }
-
-
 
     public function initQuiz($roomID)
     {
@@ -47,7 +48,7 @@ class QuizController extends Controller
         $room->startQuiz();
 
         $step = 1;
-        while ($step <= 5)
+        while ($step <= self::STEPS_COUNT)
         {
             $points = 0;
 
@@ -67,7 +68,7 @@ class QuizController extends Controller
 
             $this->callAction('sendQuestion', ['params' => ['roomID' => $room->id,]]);
 
-            sleep(16);
+            sleep(self::QUESTION_TIME);
 
             $intermidiateResults = IntermediateResult::getRoomResults($room->id,$step);
 
@@ -80,7 +81,7 @@ class QuizController extends Controller
 
             Event::fire(new SendIntermediateResults($room->id, $intermidiateResults));
 
-            sleep(10);
+            sleep(self::RESULTS_TIME);
 
             $step++;
         }
@@ -115,7 +116,7 @@ class QuizController extends Controller
         $right_answer = $question->answers[0];
 
         if( $data['answer'] == $right_answer->id ) {
-            $points = 15000 / $data['time'];
+            $points = self::SCORE_COEFFICIENT / $data['time'];
         }
 
         $intResult = IntermediateResult::where('user_id', $user->id)->where('room_id', $data['room'])->where('step',$step)->first();
