@@ -8,7 +8,10 @@ class Answer extends Model
 {
     public $timestamps = false;
 
-    protected $hidden = ['question_id', 'is_right'];
+    protected $hidden = [
+        'question_id',
+        'is_right'
+    ];
 
     protected $fillable = [
         'answer_text',

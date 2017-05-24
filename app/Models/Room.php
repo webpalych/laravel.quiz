@@ -32,7 +32,8 @@ class Room extends Model
 
     public function quizStarted()
     {
-        if($this->is_started == '1') {
+        if($this->is_started == '1')
+        {
             return true;
         }
         return false;

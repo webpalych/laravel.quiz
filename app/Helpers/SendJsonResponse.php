@@ -32,7 +32,4 @@ class SendJsonResponse
 
         return response()->json($response);
     }
-
-
-
 }

@@ -7,11 +7,16 @@ use Illuminate\Database\Eloquent\Model;
 class IntermediateResult extends Model
 {
     protected $fillable = [
-        'user_id', 'room_id', 'step', 'points'
+        'user_id',
+        'room_id',
+        'step',
+        'points'
     ];
 
     protected $hidden = [
-        'user_id', 'room_id', 'id'
+        'user_id',
+        'room_id',
+        'id'
     ];
 
     public $timestamps = false;

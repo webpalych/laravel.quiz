@@ -7,7 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class FinalResult extends Model
 {
     protected $fillable = [
-        'user_id', 'points'
+        'user_id',
+        'points'
     ];
 
     public $timestamps = false;
