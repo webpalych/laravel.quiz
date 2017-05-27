@@ -6,4 +6,5 @@ Homestead.json
 .env
 .idea/
 composer.lock
-socket.server/
+/socket.server
+/public
