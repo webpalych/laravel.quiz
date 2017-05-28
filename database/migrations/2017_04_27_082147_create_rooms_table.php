@@ -13,6 +13,7 @@ class CreateRoomsTable extends Migration
     public function up()
     {
         Schema::create('rooms', function (Blueprint $table) {
+            $table->engine = 'InnoDB';
             $table->increments('id');
             $table->tinyInteger('is_started')->unsigned()->default(0);
             $table->integer('room_admin')->unsigned()->default(1);

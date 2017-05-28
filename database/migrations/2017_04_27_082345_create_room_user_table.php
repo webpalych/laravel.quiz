@@ -13,7 +13,7 @@ class CreateRoomUserTable extends Migration
     public function up()
     {
         Schema::create('room_user', function (Blueprint $table) {
-
+            $table->engine = 'InnoDB';
             $table->integer('user_id')->unsigned()->default(1);
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('cascade');
 
