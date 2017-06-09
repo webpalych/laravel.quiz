@@ -22,6 +22,7 @@ class Question extends Model
             if(isset($answer['id'])) {
                 if($answer_to_update = Answer::find($answer['id'])) {
                     $answer_to_update->answer_text = $answer['answer_text'];
+                    $answer_to_update->is_right = $answer['is_right'];
                     $answersToSave[] = $answer_to_update;
                 }
                 else {
