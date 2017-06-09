@@ -13,7 +13,7 @@
 
 Route::get('/', function()
 {
-   return view('index');
+   return view('app');
 });
 
 Route::group(['prefix'=>'admin'], function()
@@ -29,6 +29,7 @@ Route::group(['prefix'=>'room'], function()
     Route::get('create', 'RoomController@create');
     Route::get('join/{id}', 'RoomController@join');
     Route::get('leave/{id}', 'RoomController@leave');
+    Route::get('isAdmin/{id}', 'RoomController@isRoomAdmin');
 });
 
 Route::group(['prefix'=>'quiz'], function()

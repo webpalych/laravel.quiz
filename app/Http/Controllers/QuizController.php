@@ -23,7 +23,7 @@ class QuizController extends Controller
 {
     const QUESTION_TIME = 15;
     const RESULTS_TIME = 10;
-    const SCORE_COEFFICIENT = 1500;
+    const SCORE_COEFFICIENT = 15000;
     const STEPS_COUNT = 5;
 
     public function __construct()
@@ -32,7 +32,6 @@ class QuizController extends Controller
         // except for the authenticate method. We don't want to prevent
         // the user from retrieving their token if they don't already have it
         $this->middleware('jwt.auth', ['except' => ['authenticate']]);
-
     }
 
     public function initQuiz($roomID)
@@ -52,13 +51,13 @@ class QuizController extends Controller
         {
             $points = 0;
 
-            if ( $step > 1 ) {
-                $prevPoints = IntermediateResult::select('points')->where('step', $step - 1 )->where('user_id', $user->id)->first();
-                $points = $prevPoints->points;
-            }
-
             foreach ($room->users as $user)
             {
+                if ( $step > 1 ) {
+                    $prevPoints = IntermediateResult::select('points')->where('step', $step - 1 )->where('user_id', $user->id)->first();
+                    $points = $prevPoints->points;
+                }
+
                 $user->intResults()->create([
                     'step' => $step,
                     'points' => $points,

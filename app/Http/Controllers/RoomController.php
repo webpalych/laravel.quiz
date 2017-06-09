@@ -125,4 +125,16 @@ class RoomController extends Controller
         return SendJsonResponse::sendWithMessage('failure');
     }
 
+    public function isRoomAdmin($roomID)
+    {
+        $room = Room::with('admin')->with('users')->find($roomID);
+        $user = Auth::user();
+
+        if ($user->id != $room->admin->id)
+        {
+            return SendJsonResponse::sendWithMessage('false');
+        }
+
+        return SendJsonResponse::sendWithMessage('true');
+    }
 }
