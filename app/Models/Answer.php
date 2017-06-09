@@ -9,7 +9,7 @@ class Answer extends Model
     public $timestamps = false;
 
     protected $hidden = [
-        'question_id'
+        'question_id',
     ];
 
     protected $fillable = [
