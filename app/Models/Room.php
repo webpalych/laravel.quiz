@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Http\Controllers\QuizController;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Redis;
 
@@ -49,6 +50,13 @@ class Room extends Model
     {
         $this->delete();
         Redis::del('room:' . $this->id);
+        Redis::del('room:'.$this->id.':step');
+        Redis::del('room:'.$this->id.':players');
+        Redis::del('room:'.$this->id.':results');
+        $steps = QuizController::STEPS_COUNT;
+        for ( $i=1 ; $i <= $steps; $i++) {
+            Redis::del('room:'.$this->id.':'.$i.':finished');
+        }
         return true;
     }
 }
