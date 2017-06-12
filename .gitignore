@@ -7,4 +7,5 @@ Homestead.json
 .idea/
 composer.lock
 /socket.server
+/socket.server/server.js
 /public
