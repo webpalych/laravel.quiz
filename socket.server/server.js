@@ -19,7 +19,7 @@ io.on('connection', function(socket) {
 
     socket.on('joinRoom', function (data) {
         request.get({
-            url: 'http://quiz.slstaging.tk/room/join/' + data.room,
+            url: 'http://quiz.loc/room/join/' + data.room,
             json: true,
             auth: {
                 'bearer': data.user
@@ -46,7 +46,7 @@ io.on('connection', function(socket) {
 
     socket.on('startQuiz', function (data) {
         request.get({
-            url: 'http://quiz.slstaging.tk/quiz/start_quiz/' + data.room,
+            url: 'http://quiz.loc/quiz/start_quiz/' + data.room,
             json: true,
             auth: {
                 'bearer': data.user
@@ -57,7 +57,7 @@ io.on('connection', function(socket) {
 
     socket.on('sendResult', function (data) {
         request.post({
-            url: 'http://quiz.slstaging.tk/quiz/check_results',
+            url: 'http://quiz.loc/quiz/check_results',
             json: true,
             auth: {
                 'bearer': data.user
