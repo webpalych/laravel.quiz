@@ -2,8 +2,6 @@
 
 namespace App\Events;
 
-use App\Events\Event;
-use App\Models\Question;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
@@ -13,15 +11,17 @@ class SendQuestion extends Event implements ShouldBroadcast
 
     public $roomID;
     public $question;
+    public $answers;
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct( $roomID, Question $question )
+    public function __construct( $roomID, $question, $answers )
     {
         $this->roomID = $roomID;
         $this->question = $question;
+        $this->answers = $answers;
     }
 
     /**
@@ -46,7 +46,7 @@ class SendQuestion extends Event implements ShouldBroadcast
             'room' => $this->roomID,
             'data' => [
                 'question' => $this->question,
-                'answers' => $this->question->answers
+                'answers' => $this->answers
             ]
         ];
     }

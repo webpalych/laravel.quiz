@@ -2,21 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\SendIntermediateResults;
 use App\Helpers\SendJsonResponse;
+use App\Services\QuizService;
 use Auth;
-use Event;
-use Illuminate\Support\Facades\Redis;
 
-use App\Events\SendQuestion;
+use Illuminate\Support\Facades\Redis;
 
 use Illuminate\Http\Request;
 
 use App\Models\Question;
 use App\Models\Room;
 use App\Models\IntermediateResult;
-use App\Models\FinalResult;
-
 
 
 class QuizController extends Controller
@@ -32,6 +28,13 @@ class QuizController extends Controller
         // except for the authenticate method. We don't want to prevent
         // the user from retrieving their token if they don't already have it
         $this->middleware('jwt.auth', ['except' => ['authenticate']]);
+    }
+
+    public function index() {
+        $question = Question::whereNotIn('id', ['1'])->inRandomOrder()->with(['answers' => function ($query) {
+            $query->select('answer_text', 'id', 'question_id');
+        }])->first();
+        dd($question->answers);
     }
 
     public function initQuiz($roomID)
@@ -53,60 +56,9 @@ class QuizController extends Controller
         Redis::set('room:'.$roomID.':players', $countPlayers);
         Redis::set('room:'.$roomID.':results', 0);
 
-        $this->callAction('startRound', ['params' => ['room' => $room,]]);
+        QuizService::startRound($room);
 
-//        while ($step <= self::STEPS_COUNT)
-//        {
-//            $points = 0;
-//
-//            foreach ($room->users as $user)
-//            {
-//                if ( $step > 1 ) {
-//                    $prevPoints = IntermediateResult::select('points')->where('step', $step - 1 )->where('user_id', $user->id)->first();
-//                    $points = $prevPoints->points;
-//                }
-//
-//                $user->intResults()->create([
-//                    'step' => $step,
-//                    'points' => $points,
-//                    'room_id' => $room->id
-//                ]);
-//            }
-//
-//            $this->callAction('sendQuestion', ['params' => ['roomID' => $room->id,]]);
-//
-//            sleep(self::QUESTION_TIME);
-//
-//            $intermidiateResults = IntermediateResult::getRoomResults($room->id,$step);
-//
-//            if ($step == 5 ) {
-//                foreach ($intermidiateResults as $result) {
-//                    FinalResult::saveResults($result);
-//                }
-//                $room->close();
-//            }
-//
-//            Event::fire(new SendIntermediateResults($room->id, $intermidiateResults));
-//
-//            sleep(self::RESULTS_TIME);
-//
-//            $step++;
-//        }
-
-        return response()->json($room);
-    }
-
-    public function sendQuestion($data)
-    {
-        $roomID = $data['roomID'];
-
-        $questions_numbs = Redis::lrange('room:' . $roomID, 0, 100);
-        $question = Question::with('answers')->whereNotIn('id', $questions_numbs)->inRandomOrder()->first();
-        Redis::rpush('room:' . $roomID, $question->id);
-
-        Event::fire(new SendQuestion($roomID,$question));
-
-        return SendJsonResponse::sendWithMessage('success');
+        return SendJsonResponse::sendWithMessage('Quiz Complete!');
     }
 
     public function checkResult (Request $request)
@@ -139,7 +91,7 @@ class QuizController extends Controller
             if ( $resultsCount >= $players )
             {
                 Redis::set('room:'.$room->id.':'.$step.':finished', 1);
-                $this->callAction('sendResults', ['params' => ['room' => $room]]);
+                QuizService::sendResults($room);
                 return SendJsonResponse::sendWithMessage('success');
             }
 
@@ -148,73 +100,5 @@ class QuizController extends Controller
         }
 
         return SendJsonResponse::sendWithMessage('failure');
-    }
-
-    public function startRound($data)
-    {
-        $room = $data['room'];
-        $step = Redis::get('room:'.$room->id.':step');
-
-        $points = 0;
-
-        foreach ($room->users as $user)
-        {
-            if ( $step > 1 ) {
-                $prevPoints = IntermediateResult::select('points')->where('step', $step - 1 )->where('user_id', $user->id)->first();
-                $points = $prevPoints->points;
-            }
-
-            $user->intResults()->create([
-                'step' => $step,
-                'points' => $points,
-                'room_id' => $room->id
-            ]);
-        }
-
-        $this->callAction('sendQuestion', ['params' => ['roomID' => $room->id,]]);
-
-        sleep(self::QUESTION_TIME);
-
-        $is_finished = Redis::get('room:'.$room->id.':'.$step.':finished');
-
-
-        if ( $is_finished == 1 ) {
-            return;
-        }
-
-        $this->callAction('sendResults', ['params' => ['room' => $room,]]);
-    }
-
-    public function sendResults($data)
-    {
-        $room = $data['room'];
-        $step = Redis::get('room:'.$room->id.':step');
-
-        $intermidiateResults = IntermediateResult::getRoomResults($room->id,$step);
-
-        if ($step == 5 )
-        {
-            foreach ($intermidiateResults as $result) {
-                FinalResult::saveResults($result);
-            }
-            $room->close();
-
-            Event::fire(new SendIntermediateResults($room->id, $intermidiateResults));
-
-            return SendJsonResponse::sendWithMessage('Quiz finished');
-        }
-
-        Event::fire(new SendIntermediateResults($room->id, $intermidiateResults));
-
-        sleep(self::RESULTS_TIME);
-
-        $step++;
-        Redis::set('room:'.$room->id.':'.$step.':finished', 0);
-        Redis::set('room:'.$room->id.':results', 0);
-        Redis::set('room:'.$room->id.':step', $step);
-
-        $this->callAction('startRound', ['params' => ['room' => $room,]]);
-
-        return;
     }
 }
