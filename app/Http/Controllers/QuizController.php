@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\Event;
+use App\Events\PlayerAnswered;
 use App\Helpers\SendJsonResponse;
 use App\Services\QuizService;
 use Auth;
@@ -20,7 +22,7 @@ class QuizController extends Controller
     const QUESTION_TIME = 15;
     const RESULTS_TIME = 10;
     const SCORE_COEFFICIENT = 15000;
-    const STEPS_COUNT = 5;
+   // const STEPS_COUNT = 5;
 
     public function __construct()
     {
@@ -30,16 +32,10 @@ class QuizController extends Controller
         $this->middleware('jwt.auth', ['except' => ['authenticate']]);
     }
 
-    public function index() {
-        $question = Question::whereNotIn('id', ['1'])->inRandomOrder()->with(['answers' => function ($query) {
-            $query->select('answer_text', 'id', 'question_id');
-        }])->first();
-        dd($question->answers);
-    }
-
-    public function initQuiz($roomID)
+    public function initQuiz(Request $request)
     {
-        $room = Room::with('admin')->with('users')->find($roomID);
+        $data = $request->all();
+        $room = Room::with('admin')->with('users')->find($data['room']);
         $user = Auth::user();
 
         if ($user->id != $room->admin->id)
@@ -47,14 +43,7 @@ class QuizController extends Controller
             return response()->json('Unauthorized', 401);
         }
 
-        $room->startQuiz();
-
-        $step = 1;
-        $countPlayers = count($room->users);
-        Redis::set('room:'.$roomID.':step', $step);
-        Redis::set('room:'.$roomID.':'.$step.':finished', 0);
-        Redis::set('room:'.$roomID.':players', $countPlayers);
-        Redis::set('room:'.$roomID.':results', 0);
+        $room->startQuiz($data['lang'], $data['stepsCount']);
 
         QuizService::startRound($room);
 
@@ -87,6 +76,8 @@ class QuizController extends Controller
             $players = Redis::get('room:'.$room->id.':players');
             $resultsCount = Redis::get('room:'.$room->id.':results');
             $resultsCount++;
+
+            Event::fire(new PlayerAnswered($room->id, $user->name));
 
             if ( $resultsCount >= $players )
             {

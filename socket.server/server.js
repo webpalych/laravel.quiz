@@ -8,14 +8,15 @@ redis.psubscribe('*', function (error, count) {
 
 });
 
-redis.on('pmessage', function(subscribed, channel, message) {
+redis.on('pmessage', function (subscribed, channel, message)
+{
     message = JSON.parse(message);
     var room = 'room-' + message.data.room;
     io.sockets.in(room).emit(message.event, message.data.data);
     //console.log(message);
 });
 
-io.on('connection', function(socket) {
+io.on('connection', function (socket) {
 
     socket.on('joinRoom', function (data) {
         request.get({
@@ -24,34 +25,34 @@ io.on('connection', function(socket) {
             auth: {
                 'bearer': data.user
             }
-
         }, function (error, response, json) {
-
             if (json.message == 'success') {
-
                 var room = 'room-' + data.room;
 
-                socket.join(room , function () {
+                socket.join(room, function () {
                     //console.log(socket.rooms);
                 })
-
-            } else {
-
+            }
+            else {
                 socket.emit('errors', json);
-
             }
         })
-
     });
 
     socket.on('startQuiz', function (data) {
-        request.get({
-            url: 'http://quiz.loc/quiz/start_quiz/' + data.room,
+        request.post({
+            url: 'http://quiz.loc/quiz/start_quiz',
             json: true,
             auth: {
                 'bearer': data.user
+            },
+            form: {
+                'room': data.room,
+                'stepsCount': data.stepsCount,
+                'lang': data.lang
             }
-        }, function (error, response, json) {})
+        }, function (error, response, json) {
+        })
 
     });
 
@@ -63,16 +64,15 @@ io.on('connection', function(socket) {
                 'bearer': data.user
             },
             form: {
-                'room' : data.room,
-                'step' : data.step,
-                'question' : data.question,
-                'answer' : data.answer,
-                'time' : data.time
+                'room': data.room,
+                'step': data.step,
+                'question': data.question,
+                'answer': data.answer,
+                'time': data.time
             }
-        }, function (error, response, json) {})
-
+        }, function (error, response, json) {
+        });
     });
-
 });
 
 

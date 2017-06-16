@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\Question;
-use App\Http\Requests\UpdateQuestionRequest;
-use App\Http\Requests\SaveQuestionRequest;
+use Illuminate\Http\Request;
+use App\Models\Language;
+use App\Http\Requests\SaveLanguageRequest;
 
+use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Helpers\SendJsonResponse;
 
-class QuestionController extends Controller
+class LanguageController extends Controller
 {
-
 
     public function __construct()
     {
@@ -30,7 +30,7 @@ class QuestionController extends Controller
      */
     public function index()
     {
-        return response()->json(Question::with('language')->paginate());
+        return response()->json(Language::all());
     }
 
 
@@ -40,17 +40,16 @@ class QuestionController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(SaveQuestionRequest $request)
+    public function store(SaveLanguageRequest $request)
     {
         $data = $request->all();
-        $new_question = new Question([
-            'question_text' => $data['question_text'],
+        $new_language = new Language([
+            'name' => $data['name'],
+            'slug' => $data['slug'],
         ]);
 
-        if ($new_question->save())
+        if ($new_language->save())
         {
-            $new_question->saveWithAnswers($data['answers']);
-
             return SendJsonResponse::sendWithMessage('success');
         }
 
@@ -65,14 +64,15 @@ class QuestionController extends Controller
      */
     public function show($id)
     {
-        $question = Question::with('answers')->find($id);
+        $language = Language::find($id);
 
-        if ($question)
+        if ($language)
         {
-            return response()->json($question);
+            return response()->json($language);
         }
         return SendJsonResponse::sendNotFound();
     }
+
 
     /**
      * Update the specified resource in storage.
@@ -81,24 +81,23 @@ class QuestionController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateQuestionRequest $request, $id)
+    public function update(SaveLanguageRequest $request, $id)
     {
-        $question = Question::find($id);
+        $language = Language::find($id);
 
-        if (!$question)
+        if (!$language)
         {
             return SendJsonResponse::sendNotFound();
         }
 
         $data = $request->all();
 
-        $question->question_text = $data['question_text'];
-        $question->language_id = $data['language_id'];
-        $question->save();
+        $language->name = $data['name'];
+        $language->slug = $data['slug'];
+        $language->save();
 
-        if ($question->save())
+        if ($language->save())
         {
-            $question->saveWithAnswers($data['answers']);
             return SendJsonResponse::sendWithMessage('success');
         }
 
@@ -113,14 +112,14 @@ class QuestionController extends Controller
      */
     public function destroy($id)
     {
-        $question = Question::find($id);
+        $language = Language::find($id);
 
-        if (!$question)
+        if (!$language)
         {
             return SendJsonResponse::sendNotFound();
         }
 
-        $question->delete();
+        $language->delete();
 
         return SendJsonResponse::sendWithMessage('success');
     }

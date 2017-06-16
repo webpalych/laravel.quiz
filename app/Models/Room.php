@@ -2,15 +2,16 @@
 
 namespace App\Models;
 
-use App\Http\Controllers\QuizController;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Redis;
+
 
 class Room extends Model
 {
     protected $fillable = [
         'is_started',
-        'room_admin'
+        'room_admin',
+        'is_public'
     ];
 
     protected $hidden = [
@@ -40,8 +41,17 @@ class Room extends Model
         return false;
     }
 
-    public function startQuiz()
+    public function startQuiz($lang, $stepsCount)
     {
+        $step = 1;
+        $countPlayers = count($this->users);
+        Redis::set('room:'.$this->id.':step', $step);
+        Redis::set('room:'.$this->id.':'.$step.':finished', 0);
+        Redis::set('room:'.$this->id.':players', $countPlayers);
+        Redis::set('room:'.$this->id.':results', 0);
+        Redis::set('room:'.$this->id.':language', $lang);
+        Redis::set('room:'.$this->id.':stepsCount', $stepsCount);
+
         $this->is_started = '1';
         return $this->save();
     }
@@ -53,10 +63,12 @@ class Room extends Model
         Redis::del('room:'.$this->id.':step');
         Redis::del('room:'.$this->id.':players');
         Redis::del('room:'.$this->id.':results');
-        $steps = QuizController::STEPS_COUNT;
+        $steps = Redis::get('room:'.$this->id.':stepsCount');
         for ( $i=1 ; $i <= $steps; $i++) {
             Redis::del('room:'.$this->id.':'.$i.':finished');
         }
+        Redis::del('room:'.$this->id.':stepsCount');
+        Redis::del('room:'.$this->id.':language');
         return true;
     }
 }

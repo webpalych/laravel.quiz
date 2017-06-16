@@ -6,13 +6,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class Question extends Model
 {
-    protected $fillable = ['question_text'];
+    protected $fillable = ['question_text', 'language_id'];
 
     public $timestamps = false;
 
     public function answers()
     {
         return $this->hasMany('App\Models\Answer');
+    }
+
+    public function language()
+    {
+        return $this->belongsTo( 'App\Models\Language');
     }
 
     public function saveWithAnswers($answers)

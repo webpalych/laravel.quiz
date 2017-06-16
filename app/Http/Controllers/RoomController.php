@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use App\Models\Room;
 use Auth;
 use Event;
@@ -47,10 +48,13 @@ class RoomController extends Controller
         return response()->json($data);
     }
 
-    public function create()
+    public function create(Request $request)
     {
+        $data = $request->all();
         $user = Auth::user();
-        $room = Room::create();
+        $room = Room::create([
+            'is_public' => $data['is_public']
+        ]);
         $room->admin()->associate($user);
         $room->save();
 

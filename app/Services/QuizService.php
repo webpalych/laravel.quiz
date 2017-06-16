@@ -57,7 +57,8 @@ class QuizService
 
         $intermidiateResults = IntermediateResult::getRoomResults($room->id,$step);
 
-        if ($step == QuizController::STEPS_COUNT )
+        $stepsCount = Redis::get('room:'.$room->id.':stepsCount');
+        if ($step == $stepsCount )
         {
             foreach ($intermidiateResults as $result) {
                 FinalResult::saveResults($result);
@@ -86,9 +87,10 @@ class QuizService
     public static function sendQuestion($roomID)
     {
         $questions_numbs = Redis::lrange('room:' . $roomID, 0, 100);
+        $lang = Redis::get('room:'.$roomID.':language');
         $question = Question::with(['answers' => function ($query) {
             $query->select('id', 'answer_text', 'question_id');
-        }])->whereNotIn('id', $questions_numbs)->inRandomOrder()->first();
+        }])->whereNotIn('id', $questions_numbs)->where('language_id', $lang)->inRandomOrder()->first();
         Redis::rpush('room:' . $roomID, $question->id);
 
         Event::fire(new SendQuestion($roomID, $question->question_text, $question->answers));
@@ -96,4 +98,8 @@ class QuizService
         return SendJsonResponse::sendWithMessage('success');
     }
 
+    public static function sendRightAnswer($roomID, $questionID)
+    {
+
+    }
 }

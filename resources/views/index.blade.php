@@ -77,7 +77,10 @@
             var token = $('#userToken').val();
             $.ajax({
                 url: "/room/create",
-                type: "GET",
+                type: "POST",
+                data : {
+                    is_public : 1
+                },
                 beforeSend: function(xhr){xhr.setRequestHeader('Authorization', 'Bearer '+token);},
                 success: function (data) {
                     $('#createRoomResponse').append(data.message)
@@ -115,7 +118,9 @@
 
             var data = {
                 'room' : id,
-                'user' : token
+                'user' : token,
+                'lang' : 1,
+                'stepsCount' : 4
             };
 
             socket.emit('startQuiz',data)
