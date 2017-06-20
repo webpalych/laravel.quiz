@@ -39,6 +39,7 @@ Route::group(['prefix'=>'room'], function()
 Route::group(['prefix'=>'quiz'], function()
 {
     Route::get('get_players/{roomID}', 'RoomController@getAllRoomPlayers');
+    Route::get('get_languages', 'LanguageController@getAllLanguages');
     Route::post('check_results', 'QuizController@checkResult');
     Route::post('start_quiz', 'QuizController@initQuiz');
 });
