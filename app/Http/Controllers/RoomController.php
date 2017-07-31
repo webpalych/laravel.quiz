@@ -141,4 +141,13 @@ class RoomController extends Controller
 
         return SendJsonResponse::sendWithMessage('true');
     }
+
+    public function getPublicRooms ()
+    {
+        return response()->json(Room::where([
+            ['is_public', '=', '1'],
+            ['is_started', '=', '0'],
+        ])->get());
+    }
+
 }

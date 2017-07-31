@@ -33,6 +33,10 @@ class QuestionController extends Controller
         return response()->json(Question::with('language')->paginate());
     }
 
+    public function getByLanguage($lang)
+    {
+        return response()->json(Question::with('language')->where('language_id', $lang)->paginate());
+    }
 
     /**
      * Store a newly created resource in storage.
@@ -94,7 +98,6 @@ class QuestionController extends Controller
 
         $question->question_text = $data['question_text'];
         $question->language_id = $data['language_id'];
-        $question->save();
 
         if ($question->save())
         {
