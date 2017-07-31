@@ -2,16 +2,13 @@
 
 namespace App\Http\Controllers\PrivateQuiz;
 
-use App\Helpers\CheckQuizOwner;
 use App\Models\PrivateQuiz;
-use Illuminate\Http\Request;
 use App\Helpers\SendJsonResponse;
 use App\Http\Requests\UpdateQuizRequest;
 
-use App\Http\Requests;
 use App\Http\Controllers\Controller;
+use App\Services\QuizService;
 use Auth;
-use Mockery\Exception;
 
 class PrivateQuizController extends Controller
 {
@@ -50,19 +47,16 @@ class PrivateQuizController extends Controller
         ]);
         $quiz->user()->associate($user);
 
-        try
-        {
-            if($quiz->save())
-            {
+        try {
+            if($quiz->save()) {
                 return SendJsonResponse::sendWithMessage('success');
             }
         }
-        catch (Exception $e)
-        {
+        catch (\Exception $e) {
             return SendJsonResponse::sendWithMessage('failure');
         }
 
-        return SendJsonResponse::sendWithMessage('fail');
+        return SendJsonResponse::sendWithMessage('failure');
     }
 
     /**
@@ -74,19 +68,15 @@ class PrivateQuizController extends Controller
     public function show($id)
     {
         $user = Auth::user();
-        $quiz = PrivateQuiz::find($id);
 
-        if (!$quiz)
-        {
-            return SendJsonResponse::sendNotFound();
+        $quiz = QuizService::getPrivateQuiz($user,$id,true);
+
+        if ($quiz instanceof PrivateQuiz) {
+            return response()->json($quiz);
         }
 
-        if (!CheckQuizOwner::check($user, $quiz))
-        {
-            return response()->json('Unauthorized', 401);
-        }
+        return $quiz;
 
-        return response()->json($quiz);
     }
 
 
@@ -100,16 +90,10 @@ class PrivateQuizController extends Controller
     public function update(UpdateQuizRequest $request, $id)
     {
         $user = Auth::user();
-        $quiz = PrivateQuiz::find($id);
+        $quiz = QuizService::getPrivateQuiz($user,$id);
 
-        if (!$quiz)
-        {
-            return SendJsonResponse::sendNotFound();
-        }
-
-        if (!CheckQuizOwner::check($user, $quiz))
-        {
-            return response()->json('Unauthorized', 401);
+        if (!$quiz instanceof PrivateQuiz) {
+            return $quiz;
         }
 
         $data = $request->all();
@@ -117,15 +101,12 @@ class PrivateQuizController extends Controller
         $quiz->quiz_name = $data['quiz_name'];
         $quiz->user()->associate($user);
 
-        try
-        {
-            if($quiz->save())
-            {
+        try {
+            if($quiz->save()) {
                 return SendJsonResponse::sendWithMessage('success');
             }
         }
-        catch (Exception $e)
-        {
+        catch (\Exception $e) {
             return SendJsonResponse::sendWithMessage('failure');
         }
 
@@ -141,27 +122,18 @@ class PrivateQuizController extends Controller
     public function destroy($id)
     {
         $user = Auth::user();
-        $quiz = PrivateQuiz::find($id);
+        $quiz = QuizService::getPrivateQuiz($user,$id);
 
-        if (!$quiz)
-        {
-            return SendJsonResponse::sendNotFound();
+        if (!$quiz instanceof PrivateQuiz) {
+            return $quiz;
         }
 
-        if (!CheckQuizOwner::check($user, $quiz))
-        {
-            return response()->json('Unauthorized', 401);
-        }
-
-        try
-        {
-            if($quiz->delete())
-            {
+        try {
+            if($quiz->delete()) {
                 return SendJsonResponse::sendWithMessage('success');
             }
         }
-        catch (Exception $e)
-        {
+        catch (\Exception $e) {
             return SendJsonResponse::sendWithMessage('failure');
         }
 

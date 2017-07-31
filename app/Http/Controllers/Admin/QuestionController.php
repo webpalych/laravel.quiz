@@ -8,6 +8,7 @@ use App\Http\Requests\SaveQuestionRequest;
 
 use App\Http\Controllers\Controller;
 use App\Helpers\SendJsonResponse;
+use App\Services\QuestionService;
 
 class QuestionController extends Controller
 {
@@ -49,11 +50,12 @@ class QuestionController extends Controller
         $data = $request->all();
         $new_question = new Question([
             'question_text' => $data['question_text'],
+            'language_id' => $data['language_id']
         ]);
 
         if ($new_question->save())
         {
-            $new_question->saveWithAnswers($data['answers']);
+            QuestionService::safeWithAnswers($new_question, $data['answers']);
 
             return SendJsonResponse::sendWithMessage('success');
         }
@@ -81,7 +83,7 @@ class QuestionController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\UpdateQuestionRequest $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
@@ -101,7 +103,7 @@ class QuestionController extends Controller
 
         if ($question->save())
         {
-            $question->saveWithAnswers($data['answers']);
+            QuestionService::safeWithAnswers($question, $data['answers']);
             return SendJsonResponse::sendWithMessage('success');
         }
 

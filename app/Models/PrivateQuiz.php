@@ -14,4 +14,9 @@ class PrivateQuiz extends Model
     {
         return $this->belongsTo( 'App\User');
     }
+
+    public function questions()
+    {
+        return $this->hasMany('App\Models\PrivateQuestion', 'quiz_id');
+    }
 }

@@ -2,9 +2,8 @@
 
 namespace App\Http\Requests;
 
-use App\Http\Requests\Request;
 
-class SaveQuestionRequest extends Request
+class UpdatePrivateQuestionRequest extends Request
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,9 +23,9 @@ class SaveQuestionRequest extends Request
     public function rules()
     {
         return [
-            'question_text' => 'required | unique:questions',
-            'language_id' => 'required | exists:languages,id',
+            'question_text' => 'required',
             'answers' => 'array | between:4,4',
+            'answers.*.id' => 'sometimes | numeric',
             'answers.*.answer_text' => 'required',
             'answers.*.is_right' => 'required | boolean',
         ];

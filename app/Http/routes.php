@@ -51,6 +51,10 @@ Route::group(['prefix'=>'private'], function()
     Route::resource('quizzes', 'PrivateQuiz\PrivateQuizController', ['except' => [
         'create', 'edit'
     ]]);
+    Route::post('questions/{quiz_id}', 'PrivateQuiz\PrivateQuestionController@store');
+    Route::get('questions/{quiz_id}/{question_id}', 'PrivateQuiz\PrivateQuestionController@show');
+    Route::match(['put','patch'],'questions/{quiz_id}/{question_id}', 'PrivateQuiz\PrivateQuestionController@update');
+    Route::delete('questions/{quiz_id}/{question_id}', 'PrivateQuiz\PrivateQuestionController@destroy');
 });
 
 Route::post('auth', 'Admin\AuthenticateController@registrationUser');

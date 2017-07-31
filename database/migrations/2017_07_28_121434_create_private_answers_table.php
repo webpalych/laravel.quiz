@@ -16,7 +16,7 @@ class CreatePrivateAnswersTable extends Migration
             $table->engine = 'InnoDB';
             $table->increments('id');
             $table->string('answer_text')->nullable();
-            $table->unsignedTinyInteger('is_right')->default(0);
+            $table->boolean('is_right')->default(false);
             $table->integer('question_id')->unsigned()->default(1);
             $table->foreign('question_id')->references('id')->on('private_questions')->onDelete('cascade')->onUpdate('cascade');
         });

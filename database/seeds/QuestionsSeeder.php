@@ -20,19 +20,19 @@ class QuestionsSeeder extends Seeder
         $answers = [
             [
                 'answer_text' => 'Ответ 1',
-                'is_right' => '0'
+                'is_right' => false
             ],
             [
                 'answer_text' => 'Ответ 2',
-                'is_right' => '1'
+                'is_right' => true
             ],
             [
                 'answer_text' => 'Ответ 3',
-                'is_right' => '0'
+                'is_right' => false
             ],
             [
                 'answer_text' => 'Ответ 4',
-                'is_right' => '0'
+                'is_right' => false
             ],
         ];
 

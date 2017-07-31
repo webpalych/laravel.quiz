@@ -2,6 +2,8 @@
 namespace App\Services;
 
 use App\Http\Controllers\QuizController;
+use App\Models\PrivateQuiz;
+use App\User;
 use Illuminate\Support\Facades\Redis;
 
 use App\Models\FinalResult;
@@ -101,5 +103,24 @@ class QuizService
     public static function sendRightAnswer($roomID, $questionID)
     {
 
+    }
+
+    /**
+     *  @return \App\Models\PrivateQuiz|\Illuminate\Http\Response
+     */
+    public static function getPrivateQuiz(User $user, $quiz_id, $withQuestions = false)
+    {
+        $quiz = ($withQuestions) ? PrivateQuiz::with('questions')->find($quiz_id) : PrivateQuiz::find($quiz_id);
+        $result = $quiz;
+
+        if (!$quiz) {
+            $result = SendJsonResponse::sendNotFound();
+        } else {
+            if ($user->id != $quiz->user->id){
+                $result = response()->json('Unauthorized', 401);
+            }
+        }
+
+        return $result;
     }
 }

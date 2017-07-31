@@ -25,9 +25,11 @@ class UpdateQuestionRequest extends Request
     {
         return [
             'question_text' => 'required',
+            'language_id' => 'required | exists:languages,id',
             'answers' => 'array | between:4,4',
             'answers.*.id' => 'sometimes | numeric',
-            'answers.*.answer_text' => 'required'
+            'answers.*.answer_text' => 'required',
+            'answers.*.is_right' => 'required | boolean',
         ];
     }
 }
