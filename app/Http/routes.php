@@ -43,7 +43,9 @@ Route::group(['prefix'=>'quiz'], function()
     Route::get('get_players/{roomID}', 'RoomController@getAllRoomPlayers');
     Route::get('get_languages', 'LanguageController@getAllLanguages');
     Route::post('check_results', 'QuizController@checkResult');
+    Route::post('check_private_results', 'PrivateQuiz\PrivateQuizProcessController@checkResult');
     Route::post('start_quiz', 'QuizController@initQuiz');
+    Route::post('start_private_quiz', 'PrivateQuiz\PrivateQuizProcessController@initQuiz');
 });
 
 Route::group(['prefix'=>'private'], function()

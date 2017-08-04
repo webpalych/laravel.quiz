@@ -56,9 +56,44 @@ io.on('connection', function (socket) {
 
     });
 
+    socket.on('startPrivateQuiz', function (data) {
+        request.post({
+            url: 'http://quiz.loc/quiz/start_private_quiz',
+            json: true,
+            auth: {
+                'bearer': data.user
+            },
+            form: {
+                'room': data.room,
+                'stepsCount': data.stepsCount,
+                'quiz_id': data.quiz_id
+            }
+        }, function (error, response, json) {
+        })
+
+    });
+
     socket.on('sendResult', function (data) {
         request.post({
             url: 'http://quiz.loc/quiz/check_results',
+            json: true,
+            auth: {
+                'bearer': data.user
+            },
+            form: {
+                'room': data.room,
+                'step': data.step,
+                'question': data.question,
+                'answer': data.answer,
+                'time': data.time
+            }
+        }, function (error, response, json) {
+        });
+    });
+
+    socket.on('sendPrivateResult', function (data) {
+        request.post({
+            url: 'http://quiz.loc/quiz/check_private_results',
             json: true,
             auth: {
                 'bearer': data.user
