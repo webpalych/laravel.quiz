@@ -2,8 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Http\Requests\Request;
-
 class UpdateQuestionRequest extends Request
 {
     /**
@@ -13,6 +11,7 @@ class UpdateQuestionRequest extends Request
      */
     public function authorize()
     {
+
         return true;
     }
 
@@ -24,7 +23,7 @@ class UpdateQuestionRequest extends Request
     public function rules()
     {
         return [
-            'question_text' => 'required',
+            'question_text' => 'required | unique:questions,question_text,'.$this->questions,
             'language_id' => 'required | exists:languages,id',
             'answers' => 'array | between:4,4',
             'answers.*.id' => 'sometimes | numeric',

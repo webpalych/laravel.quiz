@@ -1,28 +1,26 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\PrivateQuiz;
 
+use App\Models\PrivateQuestion;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Auth;
+use Illuminate\Support\Facades\Redis;
+
+use App\Models\Room;
+use App\Models\PrivateQuiz;
+use App\Models\IntermediateResult;
+use App\Services\QuizService;
 use App\Events\Event;
 use App\Events\PlayerAnswered;
 use App\Helpers\SendJsonResponse;
-use App\Services\QuizService;
-use Auth;
 
-use Illuminate\Support\Facades\Redis;
-
-use Illuminate\Http\Request;
-
-use App\Models\Question;
-use App\Models\Room;
-use App\Models\IntermediateResult;
-
-
-class QuizController extends Controller
+class PrivateQuizProcessController extends Controller
 {
     const QUESTION_TIME = 15;
     const RESULTS_TIME = 10;
     const SCORE_COEFFICIENT = 15000;
-   // const STEPS_COUNT = 5;
 
     public function __construct()
     {
@@ -34,16 +32,24 @@ class QuizController extends Controller
 
     public function initQuiz(Request $request)
     {
-        $data = $request->all();
-        $room = Room::with('admin')->with('users')->find($data['room']);
         $user = Auth::user();
+        $data = $request->all();
+        $quiz = QuizService::getPrivateQuiz($user,$data['quiz_id'], true);
+
+        if (!$quiz instanceof PrivateQuiz) {
+            return $quiz;
+        }
+
+        $room = Room::with('admin')->with('users')->find($data['room']);
 
         if ($user->id != $room->admin->id)
         {
             return response()->json('Unauthorized', 401);
         }
 
-        $room->startQuiz($data['lang'], $data['stepsCount']);
+        $stepsCount = ($data['stepsCount'] <= count($quiz->questions)) ? $data['stepsCount'] : count($quiz->questions);
+
+        $room->startPrivateQuiz($quiz->id, $stepsCount);
 
         QuizService::startRound($room);
 
@@ -58,8 +64,8 @@ class QuizController extends Controller
         $room = Room::with('users')->find($data['room']);
         $user = Auth::user();
 
-        $question = Question::with(['answers' => function($query){
-            $query->where('is_right',true)->take(1);
+        $question = PrivateQuestion::with(['answers' => function($query){
+            $query->where('is_right', true)->take(1);
         }])->find($data['question']);
 
         $right_answer = $question->answers[0];
@@ -82,7 +88,7 @@ class QuizController extends Controller
             if ( $resultsCount >= $players )
             {
                 Redis::set('room:'.$room->id.':'.$step.':finished', 1);
-                QuizService::sendResults($room);
+                QuizService::sendResults($room, true);
                 return SendJsonResponse::sendWithMessage('success');
             }
 

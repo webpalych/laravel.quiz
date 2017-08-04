@@ -1,7 +1,9 @@
 <?php
 namespace App\Services;
 
+use App\Http\Controllers\PrivateQuiz\PrivateQuizProcessController;
 use App\Http\Controllers\QuizController;
+use App\Models\PrivateQuestion;
 use App\Models\PrivateQuiz;
 use App\User;
 use Illuminate\Support\Facades\Redis;
@@ -18,7 +20,7 @@ use App\Helpers\SendJsonResponse;
 
 class QuizService
 {
-    public static function startRound(Room $room)
+    public static function startRound(Room $room, $private = false)
     {
         $step = Redis::get('room:'.$room->id.':step');
 
@@ -38,9 +40,13 @@ class QuizService
             ]);
         }
 
-        self::sendQuestion($room->id);
-
-        sleep(QuizController::QUESTION_TIME);
+        if(!$private) {
+            self::sendQuestion($room->id);
+            sleep(QuizController::QUESTION_TIME);
+        } else {
+            self::sendPrivateQuestion($room->id);
+            sleep(PrivateQuizProcessController::QUESTION_TIME);
+        }
 
         $is_finished = Redis::get('room:'.$room->id.':'.$step.':finished');
 
@@ -48,12 +54,12 @@ class QuizService
             return false;
         }
 
-        self::sendResults($room);
+        self::sendResults($room, $private);
 
         return true;
     }
 
-    public static function sendResults(Room $room)
+    public static function sendResults(Room $room, $private = false)
     {
         $step = Redis::get('room:'.$room->id.':step');
 
@@ -74,14 +80,18 @@ class QuizService
 
         Event::fire(new SendIntermediateResults($room->id, $intermidiateResults));
 
-        sleep(QuizController::RESULTS_TIME);
+        if(!$private) {
+            sleep(QuizController::RESULTS_TIME);
+        } else {
+            sleep(PrivateQuizProcessController::RESULTS_TIME);
+        }
 
         $step++;
         Redis::set('room:'.$room->id.':'.$step.':finished', 0);
         Redis::set('room:'.$room->id.':results', 0);
         Redis::set('room:'.$room->id.':step', $step);
 
-        self::startRound($room);
+        self::startRound($room, $private);
 
         return true;
     }
@@ -93,6 +103,20 @@ class QuizService
         $question = Question::with(['answers' => function ($query) {
             $query->select('id', 'answer_text', 'question_id');
         }])->whereNotIn('id', $questions_numbs)->where('language_id', $lang)->inRandomOrder()->first();
+        Redis::rpush('room:' . $roomID, $question->id);
+
+        Event::fire(new SendQuestion($roomID, $question->question_text, $question->answers));
+
+        return SendJsonResponse::sendWithMessage('success');
+    }
+
+    public  static function sendPrivateQuestion($roomID)
+    {
+        $questions_numbs = Redis::lrange('room:' . $roomID, 0, 100);
+        $quiz = Redis::get('room:'.$roomID.':quiz');
+        $question = PrivateQuestion::with(['answers' => function ($query) {
+            $query->select('id', 'answer_text', 'question_id');
+        }])->whereNotIn('id', $questions_numbs)->where('quiz_id', $quiz)->inRandomOrder()->first();
         Redis::rpush('room:' . $roomID, $question->id);
 
         Event::fire(new SendQuestion($roomID, $question->question_text, $question->answers));

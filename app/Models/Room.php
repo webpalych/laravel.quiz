@@ -52,7 +52,22 @@ class Room extends Model
         Redis::set('room:'.$this->id.':language', $lang);
         Redis::set('room:'.$this->id.':stepsCount', $stepsCount);
 
-        $this->is_started = '1';
+        $this->is_started = true;
+        return $this->save();
+    }
+
+    public function startPrivateQuiz($quiz_id, $stepsCount)
+    {
+        $step = 1;
+        $countPlayers = count($this->users);
+        Redis::set('room:'.$this->id.':step', $step);
+        Redis::set('room:'.$this->id.':'.$step.':finished', 0);
+        Redis::set('room:'.$this->id.':players', $countPlayers);
+        Redis::set('room:'.$this->id.':results', 0);
+        Redis::set('room:'.$this->id.':stepsCount', $stepsCount);
+        Redis::set('room:'.$this->id.':quiz', $quiz_id);
+
+        $this->is_started = true;
         return $this->save();
     }
 
